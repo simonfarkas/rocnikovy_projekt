@@ -1,4 +1,28 @@
 import tkinter as tk
+"""
+Program na simulaciu bankomatu
+1. prihlasenie
+2. hlavna stranka
+    - vklad
+    - vyber
+    - zoznam transakcii
+    - zmena udajov
+    - odhlasenie
+3. zmena udajov
+    - novy email
+    - nove heslo
+    - ulozit
+    
+Autor: Patrik Gašpar - I.SB , René Havrila - I.SB , Šimon Farkaš - I.SB
+"""
+
+#TODO:
+# 1. vylepsit design
+# 2. vylepsit vypis transakcii
+# 3. diakritika
+# 4. po logine zadat pin
+# 5. najst pripadne chyby
+# 6. optimalizovat kod
 
 zostatok = 0
 transakcie = []
@@ -8,6 +32,7 @@ heslo_login = "admin"
 success_label = None   # globalna premenna
 
 # funkcia na vklad penazi
+
 def vklad():
     global zostatok
     if vklad_input.get() == "":
@@ -19,6 +44,7 @@ def vklad():
     transakcie.append((ciastka, "Vklad"))
     zostatok_label.config(text=f"Zostatok: ${zostatok:.2f}")
     vklad_input.delete(0, tk.END)
+    error_label.pack_forget()
 
 # funkcia na vyber penazi
 def vyber():
@@ -79,9 +105,9 @@ def handle_login():
         vklad_input.pack()
         button_vyber.pack()
         vyber_input.pack()
-        view_transactions_button.pack()
+        zobrazit_transakcie_button.pack()
+        zmenit_udaje_button.pack()
         logout_button.pack()
-        change_details_button.pack()
         login_label.pack_forget()
         email_label.pack_forget()
         email_input.pack_forget()
@@ -95,6 +121,8 @@ def handle_login():
 
 #odhlasenie
 def logout():
+    email_input.delete(0, tk.END)
+    password_input.delete(0, tk.END)
     email_label.pack()
     email_input.pack()
     password_label.pack()
@@ -106,12 +134,10 @@ def logout():
     vklad_input.pack_forget()
     button_vyber.pack_forget()
     vyber_input.pack_forget()
-    view_transactions_button.pack_forget()
-    change_details_button.pack_forget()
+    zobrazit_transakcie_button.pack_forget()
+    zmenit_udaje_button.pack_forget()
     logout_button.pack_forget()
     error_label.pack_forget()
-    email_input.delete(0, tk.END)
-    password_input.delete(0, tk.END)
 
 window = tk.Tk()
 window.title("Bankomat")
@@ -141,8 +167,9 @@ button_vklad = tk.Button(text="Vklad", command=vklad)
 vklad_input = tk.Entry()
 button_vyber = tk.Button(text="Vyber", command=vyber)
 vyber_input = tk.Entry()
-view_transactions_button = tk.Button(text="Historia transakcii", command=zoznam_transakcii)
-change_details_button = tk.Button(text="Upravit udaje", command=show_change_details)
+
+zobrazit_transakcie_button = tk.Button(text="Historia transakcii", command=zoznam_transakcii)
+zmenit_udaje_button = tk.Button(text="Upravit udaje", command=show_change_details)
 logout_button = tk.Button(text="Odhlasenie", command=logout)
 zostatok_label = tk.Label(text=f"Zostatok: ${zostatok:.2f}")
 
