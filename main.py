@@ -1,3 +1,23 @@
+"""
+Autor: Šimon Farkaš I.SB, Patrik Gašpar I.SB, René Havrila I.SB
+Popis: Bankomat
+
+Premenne:
+    zostatok - premenna, ktora uchovava aktualny zostatok na ucte
+    transakcie - premenna, ktora uchovava zoznam transakcii
+    email_login - premenna, ktora uchovava email prihlaseneho pouzivatela
+    heslo_login - premenna, ktora uchovava heslo prihlaseneho pouzivatela
+
+Funckie:
+    prihlasit() - prihlasi pouzivatela
+    odhlasit() - odhlasi pouzivatela
+    transakcia(hodnota, typ) - vykona transakciu
+    zoznam_transakcii() - zobrazi zoznam transakcii
+    zmenit_udaje() - zmeni udaje pouzivatela
+    ulozit_zmeny(zmenit_udaje_okno, novy_email, nove_heslo) - ulozi zmeny udajov pouzivatela
+
+"""
+
 import tkinter as tk
 
 zostatok = 0
@@ -5,149 +25,113 @@ transakcie = []
 email_login = "admin"
 heslo_login = "admin"
 
-success_label = None   # globalna premenna
-
-# funkcia na vklad penazi
-def vklad():
-    global zostatok
-    if input.get() == "":
-        error_label.config(text="Chyba: Zadajte kladnu hodnotu")
-        error_label.pack()
-        return
-    ciastka = float(input.get())
-    zostatok += ciastka
-    transakcie.append((ciastka, "Vklad"))
-    zostatok_label.config(text=f"Zostatok: ${zostatok:.2f}")
-    input.delete(0, tk.END)
-    error_label.pack_forget()
-
-# funkcia na vyber penazi
-def vyber():
-    global zostatok
-    if input.get() == "":
-        error_label.config(text="Chyba: Zadajte kladnu hodnotu")
-        error_label.pack()
-        return
-    ciastka = float(input.get())
-    if ciastka <= zostatok:
-        zostatok -= ciastka
-        transakcie.append((ciastka, "Vyber"))
-        zostatok_label.config(text=f"Zostatok: ${zostatok:.2f}")
-        input.delete(0, tk.END)
-        error_label.pack_forget()
+def prihlasit():
+    email = email_input.get()
+    heslo = heslo_input.get()
+    if email == email_login and heslo == heslo_login:
+        for widget in [login_label, email_label, email_input, heslo_label, heslo_input, login_button, chyba]:
+            widget.pack_forget()
+        for widget in [zostatok_label,input,buttons,zobrazit_transakcie_button,zmenit_udaje_button,odhlasit_button]:
+            widget.pack()
     else:
-        error_label.config(text="Chyba: Nedostatok prostriedkov")
-        error_label.pack()
+        chyba.config(text="Chyba: Nespravne udaje")
+        chyba.pack()
 
-# zoznam transakcii
+def odhlasit():
+    email_input.delete(0, tk.END)
+    heslo_input.delete(0, tk.END)
+    for widget in [zostatok_label, buttons, input, zobrazit_transakcie_button, zmenit_udaje_button, odhlasit_button, chyba]:
+        widget.pack_forget()
+    for widget in [login_label, email_label, email_input, heslo_label, heslo_input, login_button]:
+        widget.pack()
+def transakcia(hodnota, typ):
+    global zostatok
+    if hodnota <= 0 or hodnota == "":
+        chyba.config(text="Chyba: Zadajte kladnu hodnotu")
+        chyba.pack()
+    elif typ == "Vklad":
+        zostatok += hodnota
+        transakcie.append((hodnota, typ))
+        zostatok_label.config(text=f"Zostatok: {zostatok:.2f} €")
+        input.delete(0, tk.END)
+        chyba.pack_forget()
+    elif typ == "Vyber":
+        if hodnota <= zostatok:
+            zostatok -= hodnota
+            transakcie.append((hodnota, typ))
+            zostatok_label.config(text=f"Zostatok: {zostatok:.2f} €")
+            input.delete(0, tk.END)
+            chyba.pack_forget()
+        else:
+            chyba.config(text="Chyba: Nedostatok prostriedkov")
+            chyba.pack()
 def zoznam_transakcii():
-    transakcie_window = tk.Toplevel(window)
-    transakcie_window.geometry("400x400")
-    tk.Label(transakcie_window, text="Historia transakcii").pack()
-    for transaction in transakcie:
-        tk.Label(transakcie_window, text=f"{transaction[1]} - ${transaction[0]:.2f}").pack()
-
-# zmena udajov
-def show_change_details():
-    global success_label
-    change_window = tk.Toplevel(window)
-    change_window.geometry("400x400")
-    tk.Label(change_window, text="Upravit udaje").pack()
-    tk.Label(change_window, text="Novy email").pack()
-    novy_email = tk.Entry(change_window)
+    transakcie_okno = tk.Toplevel(okno)
+    transakcie_okno.geometry("400x400")
+    tk.Label(transakcie_okno, text="Historia transakcii").pack()
+    for hodnota, typ in transakcie:
+        tk.Label(transakcie_okno, text=f"{typ} - {hodnota:.2f} €").pack()
+def zmenit_udaje():
+    zmenit_udaje_okno = tk.Toplevel(okno)
+    zmenit_udaje_okno.geometry("400x400")
+    tk.Label(zmenit_udaje_okno, text="Upravit udaje").pack()
+    tk.Label(zmenit_udaje_okno, text="Novy email").pack()
+    novy_email = tk.Entry(zmenit_udaje_okno)
     novy_email.pack()
-    tk.Label(change_window, text="Nove heslo").pack()
-    nove_heslo = tk.Entry(change_window, show="*")
+    tk.Label(zmenit_udaje_okno, text="Nove heslo").pack()
+    nove_heslo = tk.Entry(zmenit_udaje_okno, show="*")
     nove_heslo.pack()
-    tk.Button(change_window, text="Ulozit", command=lambda: save_changes(novy_email.get(), nove_heslo.get())).pack()
-    success_label = tk.Label(change_window, text="Udaje boli uspesne zmenene", fg="green")
-
-# ulozenie zmien
-def save_changes(new_email, new_password):
-    global email_login
-    global heslo_login
-    email_login = new_email
-    heslo_login = new_password
+    tk.Button(zmenit_udaje_okno, text="Ulozit", command=lambda: ulozit_zmeny(zmenit_udaje_okno, novy_email.get(), nove_heslo.get())).pack()
+def ulozit_zmeny(zmenit_udaje_okno, novy_email, nove_heslo):
+    global email_login, heslo_login
+    email_login = novy_email
+    heslo_login = nove_heslo
+    success_label = tk.Label(zmenit_udaje_okno, text="Udaje boli uspesne zmenene", fg="green")
     success_label.pack()
 
-# login funkcia
-def handle_login():
-    email = email_input.get()
-    password = password_input.get()
-    if email == email_login and password == heslo_login:
-        zostatok_label.pack()
-        input.pack()
-        buttons.pack()
-        zobrazit_transakcie_button.pack()
-        zmenit_udaje_button.pack()
-        logout_button.pack()
-        login_label.pack_forget()
-        email_label.pack_forget()
-        email_input.pack_forget()
-        password_label.pack_forget()
-        password_input.pack_forget()
-        login_button.pack_forget()
-        error_label.pack_forget()
+okno = tk.Tk()
+okno.title("Bankomat")
+okno.geometry("400x400")
+
+login_label = tk.Label(okno, text="Prihlasenie")
+email_label = tk.Label(okno, text="Email")
+email_input = tk.Entry(okno)
+heslo_label = tk.Label(okno, text="Heslo")
+heslo_input = tk.Entry(okno, show="*")
+login_button = tk.Button(okno, text="Prihlasenie", command=prihlasit)
+
+for widget in [login_label, email_label, email_input, heslo_label, heslo_input, login_button]:
+    widget.pack()
+
+buttons = tk.Frame(okno)
+
+def handle_vklad():
+    hodnota = input.get()
+    if hodnota:
+        transakcia(float(hodnota), "Vklad")
     else:
-        error_label.config(text="Chyba: Nespravne udaje")
-        error_label.pack()
+        chyba.config(text="Chyba: Zadajte hodnotu")
+        chyba.pack()
+def handle_vyber():
+    hodnota = input.get()
+    if hodnota:
+        transakcia(float(hodnota), "Vyber")
+    else:
+        chyba.config(text="Chyba: Zadajte hodnotu")
+        chyba.pack()
 
-#odhlasenie
-def logout():
-    email_input.delete(0, tk.END)
-    password_input.delete(0, tk.END)
-    email_label.pack()
-    email_input.pack()
-    password_label.pack()
-    password_input.pack()
-    login_button.pack()
-    error_label.pack()
-    zostatok_label.pack_forget()
-    buttons.pack_forget()
-    input.pack_forget()
-    zobrazit_transakcie_button.pack_forget()
-    zmenit_udaje_button.pack_forget()
-    logout_button.pack_forget()
-    error_label.pack_forget()
-
-window = tk.Tk()
-window.title("Bankomat")
-window.geometry("400x400")
-
-# prihlasenie
-login_label = tk.Label(window, text="Prihlasenie")
-login_label.pack()
-
-email_label = tk.Label(window, text="Email")
-email_label.pack()
-
-email_input = tk.Entry(window)
-email_input.pack()
-
-password_label = tk.Label(window, text="Heslo")
-password_label.pack()
-
-password_input = tk.Entry(window, show="*")
-password_input.pack()
-
-login_button = tk.Button(window, text="Prihlasenie", command=handle_login)
-login_button.pack()
-
-# hlavna stranka
-buttons = tk.Frame(window)
-
-button_vklad = tk.Button(buttons, text="Vklad", command=vklad)
+button_vklad = tk.Button(buttons, text="Vklad", command=handle_vklad)
 button_vklad.grid(row=0, column=0, padx=5, pady=5)
 
-button_vyber = tk.Button(buttons, text="Vyber", command=vyber)
+button_vyber = tk.Button(buttons, text="Vyber", command=handle_vyber)
 button_vyber.grid(row=0, column=1, padx=5, pady=5)
 
-input = tk.Entry(window)
+input = tk.Entry(okno)
 
-zostatok_label = tk.Label(window, text=f"Zostatok: ${zostatok:.2f}")
-zobrazit_transakcie_button = tk.Button(window, text="Historia transakcii", command=zoznam_transakcii)
-zmenit_udaje_button = tk.Button(window, text="Upravit udaje", command=show_change_details)
-logout_button = tk.Button(window, text="Odhlasenie", command=logout)
-error_label = tk.Label(window, fg="red")
+zostatok_label = tk.Label(okno, text=f"Zostatok: {zostatok:.2f} €")
+zobrazit_transakcie_button = tk.Button(okno, text="Historia transakcii", command=zoznam_transakcii)
+zmenit_udaje_button = tk.Button(okno, text="Upravit udaje", command=zmenit_udaje)
+odhlasit_button = tk.Button(okno, text="Odhlasenie", command=odhlasit)
+chyba = tk.Label(okno, fg="red")
 
-window.mainloop()
+okno.mainloop()
