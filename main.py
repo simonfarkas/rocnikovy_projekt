@@ -1,7 +1,4 @@
 """
-Autor: Šimon Farkaš I.SB, Patrik Gašpar I.SB, René Havrila I.SB
-Popis: Bankomat
-
 Premenne:
     zostatok - premenna, ktora uchovava aktualny zostatok na ucte
     transakcie - premenna, ktora uchovava zoznam transakcii
